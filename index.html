@@ -243,11 +243,20 @@ th:first-child, td:first-child { text-align: left; }
   h1 { font-size: 1.4rem; }
 }
 @media print {
-  body { background: white; padding: 0; }
-  .card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+  body { background: white; padding: 0; margin: 0; font-size: 9px; line-height: 1.3; }
+  .container { max-width: 100%; }
+  .card { box-shadow: none; border: 1px solid #ddd; padding: 8px 12px; margin-bottom: 6px; page-break-inside: avoid; }
+  .card h2 { font-size: 10px; margin-bottom: 4px; padding-bottom: 2px; }
   .no-print { display: none !important; }
   #results { display: block !important; }
-  h1 { border-bottom-color: #333; color: #333; }
+  h1 { border-bottom-color: #333; color: #333; font-size: 14px; margin-bottom: 8px; padding: 4px 0; }
+  table { font-size: 8.5px; margin-bottom: 4px; }
+  th, td { padding: 3px 5px; }
+  .strip-drawing { margin: 4px 0; }
+  .strip-drawing svg { max-width: 100%; height: auto; }
+  .strip-dims p { margin-bottom: 1px; font-size: 8.5px; }
+  .btn-row { display: none !important; }
+  p { margin-bottom: 2px; }
 }
 </style>
 </head>
