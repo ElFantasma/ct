@@ -1061,7 +1061,7 @@ function doCalc() {
   let matBody = '';
   if (H === 'C') {
     matBody += `<tr><td>Carrete ${LAM_DATA[lamIdx].num} x ${apilado}</td><td>1 unidad</td></tr>`;
-    matBody += `<tr><td>Laminacion ${LAM_DATA[lamIdx].num}</td><td>${lamWeight.toFixed(0)} gramos</td></tr>`;
+    matBody += `<tr><td>Laminacion ${LAM_DATA[lamIdx].num}</td><td>${lamWeight.toFixed(2)} Kg</td></tr>`;
   } else {
     matBody += `<tr><td>Laminacion (Tiras)</td><td>${FF_iron} Kg</td></tr>`;
   }
