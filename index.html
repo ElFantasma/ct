@@ -938,7 +938,7 @@ function doCalc() {
   }
 
   // ===== RENDER RESULTS =====
-  document.getElementById('results').style.display = '';
+  document.getElementById('results').style.display = 'block';
 
   // Header
   const tipoStr = tipoB === 'T' ? 'Transformador' : 'Autotransformador';
@@ -1037,7 +1037,7 @@ function doCalc() {
 
   // Strip drawing
   if (H === 'T') {
-    document.getElementById('stripDrawingCard').style.display = '';
+    document.getElementById('stripDrawingCard').style.display = 'block';
     renderStripSVG(AA, BB_dim, CC, W, J_pct, Bstrip, Zstrip, faseO);
 
     let dimsHTML = '';
