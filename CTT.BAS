@@ -1,0 +1,431 @@
+5 KEY OFF
+10 DIM A (14,7)
+20 OPEN "LAMDATOS.CAL" FOR INPUT AS #1
+30 FOR F=1 TO 14
+40 FOR X=1 TO 7
+50 INPUT #1,A(F,X)
+60 NEXT X
+70 NEXT F
+200 INPUT  "Fecha ";A$
+215 REM   **  PANTALLA PREGUNTAS GENERALES  **
+220 CLS
+230 Y$="": GG=0:M$="":PRINT "         CALCULO DE TRANSFORMADORES"
+240 LOCATE 5,1:PRINT "TRAFO / AUTOTRAFO"
+250 LOCATE 7,1:PRINT "1) MONOFASICO"
+260 LOCATE 9,1:PRINT "2) TRIFASICO
+270 LOCATE 11,1:PRINT "3) BOBINA"
+275 PRINT
+276 PRINT
+280 LOCATE 23,1:INPUT "Elige opcion  T , A o 3 ";B$
+290 IF B$="T" THEN LOCATE 5,1:PRINT "            TRANSFORMADOR                ";:GOTO 309
+300 IF B$="A"THEN LOCATE 5,1:PRINT "             AUTOTRANSFORMADOR            ":GOTO 309
+305 IF B$="3"THEN LOCATE 5,1:PRINT "             BOBINA                      ";C$="0":GOTO 320
+307 GOTO 280
+309 LOCATE 23,1:PRINT "                                                                  "
+310 LOCATE 23,1:INPUT "Elige 1 o 2 ";O$
+315 IF B$="A"THEN GOTO 5400
+319 CLS
+320 LOCATE 23,1:INPUT "Cuantos Secundarios : ";CS:CS=CS+1:DIM B(CS,18) : DIM G$(CS-1)
+325 LOCATE 23,1:PRINT "                                                              "
+330 LOCATE 23,1:INPUT "Pantalla  Electroestatica  S/N : ";D$
+335 LOCATE 23,1:PRINT "                                                              "
+340 LOCATE 23,1:INPUT "Potencia Total en Watts: ";P
+345 LOCATE 23,1:PRINT "                                                              "
+350 LOCATE 23,1:INPUT  "Tension Primario en Volt : ";E$
+355 IF E$="110:110" THEN E$="220":GG=1
+360 B(1,1)= VAL (E$)
+380 FOR F=2 TO CS
+385 LOCATE 23,1:PRINT "                                                              "
+390 LOCATE 23,1:PRINT "Entre tension y corriente del Secundario ";F-1;":                    ":INPUT G$(F-1):INPUT B(F,2):B(F,1)=VAL (G$(F-1))
+410 NEXT F
+500 CLS
+501 IF B$="T"AND O$="1" THEN LOCATE 2,15:PRINT "Transformador   Monofasico"
+505 IF B$="A"AND O$="1" THEN LOCATE 2,15:PRINT "Autotransformador   Monofasico"
+510 IF B$="A"AND O$="2" THEN LOCATE 2,15:PRINT "Autotransformador   Trifasico"
+515 IF B$="T"AND O$="2" THEN LOCATE 2,15:PRINT "Transformador   Trifasico"
+520 LOCATE 4,2:PRINT "Potencia Total : ";P;" Watt              Pantalla : ";D$
+530 LOCATE 6,2:PRINT "Tension Primario: ";E$;" Volt        Secundarios : ";CS-1
+540 FOR F=2 TO CS
+550 LOCATE F+8,2:PRINT "Secundario ";F-1;" : Volt ";G$(F-1);"                    Amperes : ";B(F,2)
+560 NEXT F
+570 LOCATE 23,1:PRINT "                                                               "
+580 LOCATE 23,1:INPUT "Datos Correctos  S/N ";Z$
+590 IF Z$="S" THEN GOTO 700
+600 IF Z$="N"THEN RUN
+610 M$=""
+699 REM  **  CALCULO DE LA SECCION DEL NUCLEO  **
+700 IF O$="2"THEN P=P/3
+705 SC=1.1*SQR (P)
+710 CLS:PRINT "Seccion Ideal del Nucleo : "SC;" cm."
+712 IF O$="2"THEN J$="S":M$="":H$="T":GOTO 4000
+714 INPUT "Indique si se fabrica con Carrete o Tiras : ";H$
+716 IF H$="C" THEN GOTO 720
+718 IF H$="T" THEN J$="S":M$="":GOTO 4000
+720 INPUT "Indique seccion de Calculo en cm. : ";S
+725 INPUT "Indique Laminacion      ";X
+726 INPUT "Indique Apilado         ";D
+727 INPUT "Indique si es Capa Sobre Capa ";J$
+730 FOR F=1 TO 14
+740 IF X=A(F,1)THEN Y=F
+750 NEXT F
+780 INPUT "Indique Gauss en miles ";G
+790 INPUT "Continuo S/N ";Z$
+791 IF Z$="S"THEN GOTO 800
+792 IF Z$="N" THEN GOTO 699
+800 REM  **  CALCULO DE LAS ESPIRAS  **
+805 CLS
+810 N=100000!/(S*G)
+820 EXV=N/220
+830 B(1,3)=EXV*B(1,1)
+840 FOR F=2 TO CS:B(F,3)=EXV*B(F,1):NEXT F
+850 IF M$="G" OR M$="C" THEN GOTO 1500
+860 IF Y$="G" OR Y$="S" THEN GOTO 4200
+900 REM  **  CALCULO DE LAS SECCIONES DEL ALAMBRE  **
+910 PP=(P)*1.05
+920 B(1,4)=(PP/B(1,1))/2.5
+925 B(1,2)=(PP)/B(1,1)
+930 FOR F=2 TO CS:B(F,4)=B(F,2):NEXT F
+940 LOCATE 2,3:PRINT "Secciones ideales de Alambre "
+950 LOCATE 5,2:PRINT "Primario        : ";B(1,4)
+960 FOR F=2 TO CS:B(F,4)=B(F,2)/2.5:NEXT F
+970 FOR F=1 TO CS-1:LOCATE F+5,1:PRINT " Secundario ";F;" : ";B(F+1,4):NEXT F
+980 FOR F=1 TO CS
+990 IF F<>1 THEN PRINT "Indique diametro de alambre del Secundario ";F-1;" ":INPUT B(F,5)
+994 IF F=1 THEN INPUT "Indique diametro del Primario ";B(F,5)
+1010 B(F,7)=((B(F,5)/2)*(B(F,5)/2))*3.1415927#
+1020 B(F,12)=B(F,7)*9
+1030 B(F,13)=(1.75/B(F,7))/100
+1040 NEXT F
+1050 IF H$="T" THEN GOTO 4200
+1500 REM  **  CALCULO DE LAS ESPIRAS POR CAPA  **
+1520 CLS
+1570 R=1.1
+1577 IF D$="S"THEN R=R+.5
+1579 FOR F=1 TO CS
+1580 O=0
+1581 IF B(F,5)>=.05 THEN O=.01
+1582 IF B(F,5)>=.14 THEN O=.02
+1583 IF B(F,5)>=.25 THEN O=.03
+1584 IF B(F,5)>=.35 THEN O=.05
+1585 IF B(F,5)>=1.05 THEN O=.1
+1586 IF B(F,5)>=2.05 THEN O=.3
+1587 B(F,18)=B(F,5)+O
+1589 B(F,9)=A(Y,6)/B(F,18):B(F,9)= INT (B(F,9))
+1590 IF F=1 THEN CACA= INT (B(F,3)): IF GG=1 THEN CACA=CACA/2
+1591 IF F<>1 THEN CACA= INT (B(F,3) + .5)
+1595 B(F,6)=CACA/B(F,9):B(F,6)=INT (B(F,6) + .9)
+1597 IF GG=1 AND F=1 THEN B(1,6)=(B(1,6)*2)
+1598 IF F=1 AND J$="S" THEN B(1,18)=B(1,18)+.1
+1600 R=R+(B(F,6)*B(F,18)+.2)
+1605 IF GG=1 AND F=1 THEN R=R+.2
+1610 NEXT F
+1620 RV=(R/A(Y,3))*100: RV= INT (RV+1)
+1700 REM  **  PANTALLA PRELIMINAR  **
+1705 CLS
+1710 IF B$="T"THEN LOCATE 1,18:PRINT "TRANSFORMADOR"
+1720 IF B$="A"THEN LOCATE 1,18:PRINT "AUTOTRANSFORMADOR"
+1730 IF O$="1" THEN LOCATE 1,40:PRINT "MONOFASICO"
+1740 IF O$="2"THEN LOCATE 1,40:PRINT "TRIFASICO"
+1750 LOCATE 3,5:PRINT "Potencia:    ";P;" Watt"
+1760 LOCATE 3,40:PRINT "Pantalla: ";D$
+1780 LOCATE 5,15:PRINT "Carrete: ";X;" X ";D
+1790 LOCATE 7,5:PRINT "Induccion (B) : ";G;"000 Gauss"
+1800 LOCATE 7,40:PRINT "Seccion nucleo : ";S;" Cm."
+1810 LOCATE 9,22:PRINT "Volt":LOCATE 9,30:PRINT "Amp.":LOCATE 9,45:PRINT "Amp./mm.":LOCATE 9,58:PRINT "0 Cu.":LOCATE 9,70:PRINT "Espiras"
+1820 FOR F=1 TO CS
+1830 B(F,8)=B(F,2)/B(F,7)
+1840 NEXT F
+1850 FOR F=1 TO CS
+1860 IF F=1 THEN LOCATE 11,5:PRINT "Primario  : ":LOCATE 11,22:PRINT B(F,1):LOCATE 11,30:PRINT B(F,2):LOCATE 11,45:PRINT " ";B(F,8):LOCATE 11,58:PRINT " ";B(F,5);"   ":LOCATE 11,70:PRINT B(F,3)
+1870 IF F<>1 THEN LOCATE F+10,5:PRINT "Secundario: ";F-1:LOCATE F+10,22:PRINT B(F,1):LOCATE F+10,30:PRINT B(F,2):LOCATE F+10,45:PRINT B(F,8):LOCATE F+10,58:PRINT " ";B(F,5);"   ":LOCATE F+10,70:PRINT B(F,3)
+1880 NEXT F
+1890 LOCATE F+10,1:PRINT "                                                                               "
+1900 LOCATE F+11,5:PRINT "Porcentaje de Ventana: ";RV;"%"
+1910 LOCATE 23,1:INPUT "Que cambio  - 0 - G - C - o - Nada ";M$
+1920 REM  **  REMPLAZO DE CONDICIONES  **
+1925 CLS
+1930 IF M$="0" THEN GOTO 900
+1940 IF M$="C" THEN GOTO 699
+1950 IF M$="G" THEN GOTO 780
+2000 REM  **  REAJUSTE DE ESPIRAS  **
+2020 IF H$="T" THEN A2=B:D2=Z+10:GOTO 2040
+2030 D2=D:A2=A(Y,2)
+2040 AISL=1
+2060 FOR F=1 TO CS
+2062 IF F<>1 THEN D2=Q:A2=L:AISL=.2:IF D$="S" AND F=2 THEN AISL=.7
+2070 B(F,10)=B(F,6)*B(F,18)
+2075 IF GG=1 AND F=1 THEN B(1,10)=B(1,10) + .2
+2080 L=B(F,10)*2 + (A2+AISL):Q=B(F,10)*2+(D2+AISL):B(F,11)=L+Q+A2+AISL+(D2+AISL)
+2090 B(F,15)=(B(F,11)*B(F,3))/1000
+2095 IF B(F,5)>2 THEN B(F,14)=(B(F,15)*B(F,12))*1.1:GOTO 2110
+2100 B(F,14)=(B(F,15)*B(F,12))*1.05
+2110 B(F,16)=B(F,15)*B(F,13)*B(F,2)*EXV
+2120 IF F=1 THEN B(F,17)=B(F,3)-B(F,16)
+2130 IF F<>1 THEN B(F,17)=B(F,3)+B(F,16)
+2140 NEXT F
+2150 IF H$="T" THEN GOTO 4520
+2200 REM  **  PANTALLAS DEFINITIVAS  **
+2210 REM  **  Pantalla de Datos  **
+2215 CLS
+2217 LOCATE 1,45:PRINT ;A$
+2220 LOCATE 23,1: INPUT "Ingrese nombre del Cliente : ";L$
+2230 LOCATE 3,5:PRINT "Cliente                          : ";L$
+2235 LOCATE 23,1:PRINT "                                                                "
+2240 LOCATE 23,1:INPUT "Ingrese nombre del Transformador : ";T$
+2245 LOCATE 23,1:PRINT "                                                                "
+2250 LOCATE 23,1:INPUT "Ingrese el numero de Codigo : ";K$
+2255 LOCATE 23,1:PRINT "                                                                     "
+2260 LOCATE 5,5:PRINT "Nombre del Transformador : ";T$:LOCATE 5,60:PRINT "Codigo : ";K$
+2261 LOCATE 7,5:PRINT "Tipo                     : "
+2262 IF B$="T" THEN LOCATE 7,33:PRINT "Transformador:
+2264 IF B$="A" THEN LOCATE 7,33:PRINT "Autotransformador"
+2266 IF O$="1"THEN LOCATE 7,53:PRINT "Monofasico"
+2268 IF O$="2" THEN LOCATE 7,53:PRINT "Trifasico"
+2269 IF O$="2" THEN LOCATE 9,5:PRINT "Potencia Total : ";INT (P*3+.5);" Watt": GOTO 2275
+2270 LOCATE 9,5:PRINT "Potencia Total : ";P;" Watt"
+2275 LOCATE 11,20:PRINT "Volt":LOCATE 11,40:PRINT "Ampers"
+2280 FOR F=1 TO CS
+2285 IF F=1 AND GG=1 THEN LOCATE 13,5:PRINT "Primario  :":LOCATE 13,18:PRINT ;B(F,1)/2;":";B(F,1)/2:LOCATE 13,38:PRINT ;B(F,2):GOTO 2300
+2290 IF F=1 THEN LOCATE 13,5:PRINT "Primario  : ":LOCATE 13,18:PRINT ;B(F,1):LOCATE 13,38:PRINT ;B(F,2)
+2300 IF F<>1 THEN LOCATE F+13,5:PRINT "Secundario : ";F-1;:LOCATE F+13,18:PRINT ;B(F,1):LOCATE F+13,38:PRINT ;B(F,2)
+2310 NEXT F
+2320 LOCATE 23,1:INPUT "Terminacion : ";I$
+2325 LOCATE 23,1:PRINT "                                                               "
+2330 LOCATE 21,5:PRINT "Terminacion : ";I$
+2350 LOCATE 23,1:INPUT "Para ver construcion precione enter";HH
+2400 REM  **  PANTALLA CONSTRUCCION  **
+2410 CLS:LOCATE 1,13:PRINT "CONSTRUCCION"
+2415 IF H$="T" THEN LOCATE 3,5:PRINT "Nucleo   : ";B;" X ";Z:LOCATE 3,40:PRINT "Gauss   : ";G;"000"
+2420 IF H$="C" THEN LOCATE 3,5:PRINT "Carrete  : ";X;" X ";D:LOCATE 3,40:PRINT " Gauss : ";G;"000"
+2430 LOCATE 5,5:PRINT "Pantalla : ";D$:LOCATE 5,40:PRINT " C.S.C. : ";J$
+2440 LOCATE 7,30:PRINT "Diametro de Cu.":LOCATE 7,55:PRINT "Espiras":IF H$="T" THEN LOCATE 7,60:PRINT "Capas"
+2450 FOR F= 1 TO CS
+2455 IF F=1 AND GG=1 THEN LOCATE 9,5:PRINT "Primario  : ":LOCATE 9,28:PRINT ;B(F,5):LOCATE 9,50:PRINT ; INT (B(F,17)/2);"+";INT (B(F,17)/2): GOTO 2465
+2460 IF F=1 THEN LOCATE 9,5:PRINT "Primario  : ":LOCATE 9,29:PRINT ;B(F,5):LOCATE 9,55:PRINT ;B(F,17):IF H$="T" THEN LOCATE 9,67:PRINT ;B(F,6)
+2465 IF F<>1 THEN B(F,17)=B(F,17) + .5
+2470 IF F<>1 THEN LOCATE F+9,5:PRINT "Secundario :";F-1:LOCATE F+9,29:PRINT ;B(F,5):LOCATE F+9,55:PRINT ;INT (B(F,17)): IF H$="T"THEN LOCATE F+9,67:PRINT ;B(F,6)
+2480 NEXT F
+2490 LOCATE 18,1:PRINT "Terminacion : ";I$
+2500 LOCATE 23,1:INPUT "Para ver criterios de calculo presione enter";HH
+2700 REM  **  CRITERIOS DE CALCULO  **
+2705 CLS
+2710 LOCATE 1,20:PRINT "CRITERIOS DE CALCULO"
+2713 LOCATE 3,5:PRINT "Seccion de Calculo : ";S;"Cm":LOCATE 3,40:PRINT "Induccion (B) : ";G;"000 Gauss"
+2716 LOCATE 5,5:PRINT "Espiras X Volt : ";EXV:LOCATE 5,40:PRINT "C.S.C : ";J$
+2730 FOR F=1 TO CS
+2740 IF F=1 THEN LOCATE 10,5:PRINT "Primario  : ":LOCATE 10,25:PRINT ;B(F,8);"   Amp. / mm."
+2750 IF F<> 1 THEN LOCATE F+10,5:PRINT "Secundario : ";F-1:LOCATE F+10,25:PRINT ;B(F,8);" Amp. / mm."
+2760 NEXT F
+2770 IF H$="T" THEN RV=74
+2780 LOCATE 20,5:PRINT "Porcentaje de Ventana : ";RV;" %"
+2790 LOCATE 21,1:INPUT "Para ver los costos precione enter";HH
+3000 REM  **  COSTOS  **
+3005 IF H$="T" THEN GOTO 5200
+3010 CLS
+3020 LOCATE 2,25:PRINT "MATERIALES"
+3030 LOCATE 4,5:PRINT "Material":LOCATE 4,45:PRINT "Cantidad"
+3040 LOCATE 6,5:PRINT "Carrete : ";X;" X ";D:LOCATE 6,50:PRINT "1"
+3050 E=D*A(Y,7)
+3100 LOCATE 8,5:PRINT "Laminacion : ";X:LOCATE 8,50:PRINT ;E;" Gramos"
+3200 FOR F=1 TO CS
+3205 IF O$="2" THEN B(F,14)=B(F,14)*3
+3210 LOCATE F+10,5:PRINT "Diametro de Cu. : ";B(F,5):LOCATE F+10,50:PRINT ;INT(B(F,14));" Gramos"
+3220 NEXT F
+3300 REM  **  IMPRECION **
+3310 LOCATE 21,1:INPUT "Desea imprimir  S / N ";WW$
+3320 IF WW$="N" THEN RUN
+3330 IF WW$="S" THEN GOTO 3340
+3340 CLS
+3350 LPRINT "                                                       Fecha  : ";A$
+3360 LPRINT
+3370 LPRINT "     Cliente                  : ";L$
+3375 LPRINT
+3380 LPRINT "     Nombre del Transformador : ";T$;"                CODIGO : ";K$
+3385 LPRINT
+3390 IF B$="T" AND O$="1" THEN LPRINT "     Tipo                     :  Transformador   Monofasico"
+3400 IF B$="T" AND O$="2" THEN LPRINT "     Tipo                     :  Transformador   Trifasico"
+3410 IF B$="A" AND O$="1" THEN LPRINT "     Tipo                     :  Autotransformador   Monofasico"
+3420 IF B$="A" AND O$="2" THEN LPRINT "     Tipo                     :  Autotransformador   Trifasico"
+3430 LPRINT
+3440 IF O$="2" THEN LPRINT "     Potencia Total           : ";INT (P*3+.5);" Watt       Pantalla : ";D$
+3450 IF O$="1" THEN LPRINT "     Potencia Total           : ";P;"Watt                   Pantalla : ";D$
+3460 LPRINT
+3470 LPRINT "                              Volt              Ampers"
+3480 LPRINT
+3490 FOR  F=1 TO CS
+3500 IF F=1 AND GG=1 THEN LPRINT "     Primario   :           ";B(F,1)/2;":";B(F,1)/2;"         ";B(F,2):GOTO 3530
+3510 IF F=1 THEN LPRINT "     Primario   :          ";B(F,1);"                    ";B(F,2)
+3530 IF F<>1 THEN LPRINT "     Secundario : ";F-1;"     ";B(F,1);"                     ";B(F,2)
+3540 NEXT F
+3545 LPRINT
+3550 LPRINT "     Terminacion : ";I$
+3560 LPRINT "--------------------------------------------------------------------------------"
+3570 LPRINT
+3580 LPRINT "                   CONSTRUCCION                         MATERIALES  CANTIDAD"
+3690 LPRINT
+3700 IF H$="T" THEN LPRINT "     Nucleo :     ";B;" X ";Z
+3710 IF H$="C" THEN LPRINT "     Carrete :     ";X;" X ";D;"                       1"
+3720 LPRINT
+3725 IF H$="T" THEN LPRINT "     Tipo de Laminacion : Tiras                        ";FF;" Kilos":GOTO 3735
+3730 LPRINT "     Tipo de Laminacion : ";X;"                              ";E;"  Kilos"
+3735 LPRINT
+3740 LPRINT "     Pantalla : ";D$;"                     C.S.C. : ";J$
+3745 LPRINT
+3750 LPRINT "                      Dia. de Cu    Espiras       Capas""
+3760 LPRINT
+3780 FOR F=1 TO CS
+3790 IF F=1 AND GG=1 THEN LPRINT "     Primario   :        ";B(F,5);SPACE$(13-(LEN(STR$(B(F,5)))));INT (B(F,17)/2);"+";INT (B(F,17)/2);SPACE$(13-(LEN(STR$(INT (B(F,17)/2))+STR$(INT (B(F,17)/2)))));B(F,6);SPACE$(10-(LEN(STR$(B(F,6)))));INT (B(F,14)+.5);" G
+3800 IF F=1 AND H$="T" THEN LPRINT "     Primario   :        ";B(F,5);SPACE$(13-(LEN(STR$(B(F,5)))));INT (B(F,17));SPACE$(13-(LEN(STR$(INT (B(F,17))))));B(F,6);SPACE$(10-(LEN(STR$(B(F,6)))));INT (B(F,14)+.5);"Gramos":GOTO 3820
+3810 IF F=1 THEN LPRINT "     Primario   :        ";B(F,5);SPACE$(13-(LEN(STR$(B(F,5)))));INT (B(F,17));SPACE$(13-(LEN(STR$(INT (B(F,17))))));B(F,6);SPACE$(10-(LEN(STR$(B(F,6)))));INT(B(F,14)+.5);" Gramos"
+3820 IF F<>1 THEN LPRINT "     Secundario : ";F-1;"     ";B(F,5);SPACE$(13-(LEN(STR$(B(F,5)))));INT (B(F,17)+.5);SPACE$(13-(LEN(STR$(INT (B(F,17))))));B(F,6);SPACE$(10-(LEN(STR$(B(F,6)))));INT (B(F,14)+.5);" Gramos"
+3825 NEXT F
+3830 LPRINT
+3840 LPRINT "     Terminacion : ";I$
+3845 LPRINT
+3850 LPRINT "-------------------------------------------------------------------------------"
+3860 LPRINT
+3870 LPRINT "            CRITERIOS DE CALCULO"
+3880 LPRINT
+3890 LPRINT "     Seccion de Calculo : ";S;"       Induccion (B) : ";G;"000  Gauss"
+3900 LPRINT
+3910 LPRINT "     Espiras X Volt     : ";EXV;"       C.S.C.        : ";J$
+3920 LPRINT
+3930 FOR F=1 TO CS
+3940 IF F=1 THEN LPRINT "     Primario   :     ";B(F,8);"  Amp. / mm"
+3950 IF F<>1 THEN LPRINT "     Secundario : ";F-1;"  ";B(F,8);" Amp. / mm"
+3960 NEXT F
+3970 LPRINT
+3975 LPRINT "     Porcentaje de Ventana : ";RV
+3977 IF H$="T" THEN GOTO 5300
+3981 LOCATE 23,1:INPUT "Conforme : S / N ";L$
+3982 IF L$="N" AND H$="T" THEN GOTO 4520
+3983 IF L$="N" THEN GOTO 1700
+3984 IF L$="S" THEN RUN
+4000 REM  **  CALCULOS CON TIRAS  **
+4050 INPUT "Indique seccion ";B
+4055 INPUT "Indique apilado ";Z
+4060 S= INT (B*Z/100)
+4070 LOCATE 5,1:PRINT "Seccion de calculo : ";S;" Cm."
+4080 INPUT "Indique Gauss en miles ";G:LOCATE 7,1:PRINT "Induccion ";G;"000 Gauss"
+4090 GOTO 790
+4200 REM  **  PANTALLA PARA DETERMINAR CARRERA CON TIRAS  **
+4210 CLS
+4220 LOCATE 2,1:PRINT "Seccion Nucleo : ";B;" X ";Z
+4225 LOCATE 6,20:PRINT "Espiras":LOCATE 6,50:PRINT "0 de Cu."
+4230 FOR F=1 TO CS
+4240 IF F=1 THEN LOCATE 8,1:PRINT "Primario   :         ";INT (B(1,3)):LOCATE 8,50:PRINT ;B(1,5)
+4250 IF F<>1 THEN LOCATE 10,1:PRINT "Secundario : ";F-1;"      ";INT (B(F,3)+1):LOCATE 10,50:PRINT ;B(F,5)
+4255 NEXT F
+4260 LOCATE 23,1:INPUT "Cuantas capas en secundario : ";K
+4270 REM  **  CALCULO ESPIRAS POR CAPA  **
+4280 B(2,9)=B(2,3)/K
+4285 B(2,6)=K
+4310 R=1.5
+4320 IF D$="S" THEN R=R+.5
+4340 FOR F=1 TO CS
+4360 O=0
+4370 IF B(F,5) >=.05 THEN O=.01
+4380 IF B(F,5) >=.14 THEN O=.02
+4390 IF B(F,5) >=.25 THEN O=.03
+4400 IF B(F,5) >=.35 THEN O=.05
+4410 IF B(F,5) >=1.05 THEN O=.1
+4420 IF B(F,5) >=2.05 THEN O=.3
+4430 B(F,18)=B(F,5)+O
+4433 NEXT F
+4435 W=B(2,9)*B(2,18)+40:W= INT (W+1)
+4437 FOR F=1 TO CS
+4440 IF F<>2 THEN B(F,9)=(W-40)/B(F,18):B(F,0)= INT (B(F,9))
+4450 IF F=1 THEN CACA= INT (B(F,3))
+4460 IF F<>1 THEN CACA = INT (B(F,3)+.5)
+4470 IF F<>2 THEN B(F,6) = CACA/B(F,9):B(F,6) = INT (B(F,6)+.9)
+4475 IF J$="S" THEN B(F,18)= B(F,18)+ .1
+4480 R= R+(B(F,6)*B(F,18)+.3)
+4490 NEXT F
+4500 J=(R/74)*100: J= INT (J+1)
+4505 IF O$="2" THEN  J=((R*2)/74)*100: J=INT (J+1)
+4510 GOTO 2000
+4520 REM  **  DIBUJO PRELIMINAR PARA TIRAS  **
+4525 CLS
+4528 SCREEN 2
+4530 PSET (55,1):DRAW "D150":DRAW "R340":DRAW "U150":DRAW "L340"
+4540 PSET (123,30):DRAW "D90":DRAW "R68":DRAW "U90":DRAW "L68":PSET (259,30):DRAW "D90":DRAW "R68":DRAW "U90":DRAW "L68"
+4550 PSET (55,155):DRAW "D16":PSET (123,155):DRAW "D8":PSET (191,155):DRAW "D8":PSET (259,155):DRAW "D8":PSET (327,155):DRAW "D8":PSET (395,155):DRAW "D16"
+4560 PSET (400,150):DRAW "R32":PSET (400,120):DRAW "R8":PSET (400,30):DRAW "R8":PSET (400,1):DRAW "R32"
+4565 REM  **  DIMENCIONADO  **
+4570 AA=B/2
+4575 IF O$="2" THEN AA=B
+4580 BB= (2*AA)+W
+4590 CC=(2*AA) + (2*J) +B
+4650 LOCATE 2,45:PRINT ;AA:LOCATE 6,45:PRINT ;W:LOCATE 10,45:PRINT ;AA:LOCATE 6,50:PRINT ;BB:LOCATE 12,10:PRINT ;AA:LOCATE 12,17:PRINT ;J:LOCATE 12,25:PRINT ;B:LOCATE 12,32:PRINT ;J:LOCATE 12,40:PRINT ;AA:LOCATE 14,25:PRINT ;CC
+4660 LOCATE 2,60:PRINT "Apilado : ";Z
+4665 LOCATE 4,60:PRINT ;G;"000 Gauss"
+4670 FF= INT ((((BB*CC*Z)-(J*W*2*Z))*7.87)/1000000! + 1)
+4680 LOCATE 6,60:PRINT "Peso Fe : ";FF;" Kg"
+4690 LOCATE 16,18:PRINT "Espiras":LOCATE 16,33:PRINT "0 de Cu":LOCATE 16,47:PRINT "A/mm":LOCATE 16,60:PRINT "Capas":LOCATE 16,68:PRINT "Peso"
+4700 FOR F=1 TO CS
+4705 B(F,8)=B(F,2)/B(F,7)
+4710 IF F=1 THEN LOCATE 18,1:PRINT "Primario   : ":LOCATE 18,19:PRINT ;INT (B(F,3)-.5):LOCATE 18,34:PRINT ;B(F,5):LOCATE 18,46:PRINT ;B(F,8):LOCATE 18,62:PRINT ;B(F,6):LOCATE 18,69:PRINT INT (B(F,14))
+4720 IF F<>1 THEN LOCATE F+18,1:PRINT "Secundario : ";F-1:LOCATE F+18,19:PRINT ;INT (B(F,3)+.5):LOCATE F+18,34:PRINT ;B(F,5):LOCATE F+18,46:PRINT ;B(F,8):LOCATE F+18,62:PRINT ;B(F,6):LOCATE F+18,69:PRINT ;INT (B(F,14))
+4730 NEXT F
+4770 LOCATE 23,1:INPUT "Cambio   S,  0,  G,  C o   Nada ";Y$
+4775 SCREEN 0
+4780 IF Y$="0" THEN GOTO 900
+4790 IF Y$="G" THEN GOTO 4080
+4800 IF Y$="C" THEN GOTO 4200
+4810 IF Y$="N" THEN GOTO 2200
+4820 IF Y$="S" THEN GOTO 4000
+5200 REM  **  COSTOS CON TIRAS  **
+5210 CLS
+5220 LOCATE 1,27:PRINT "COSTOS"
+5230 LOCATE 3,25:PRINT "Material               Cantidad"
+5240 LOCATE 5,15:PRINT "Laminacion :                         ";FF;"    KG"
+5250 GOTO 3200
+5300 REM  ** IMPRECION DE CONFIGURACION TIRAS  **
+5310 CLS
+5320 LOCATE 23,1:PRINT "Desea imprimir configuracion tiras S / N ";C$
+5330 IF C$="N" THEN CLS:RUN
+5340 IF C$="S" THEN GOTO 5400
+5400 CLS
+5410 SCREEN 2
+5420 PSET (55,1):DRAW "D150":DRAW "R340":DRAW "U150":DRAW "L340"
+5430 PSET (123,30):DRAW "D90":DRAW "R68":DRAW "U90":DRAW "L68":PSET (259,30):DRAW "D90":DRAW "R68":DRAW "U90":DRAW "L68"
+5440 PSET (55,155):DRAW "D16":PSET (123,155):DRAW "D8":PSET (191,155):DRAW "D8":PSET (259,155):DRAW "D8":PSET (327,155):DRAW "D8":PSET (395,155):DRAW "D16"
+5450 PSET (400,150):DRAW "R32":PSET (400,120):DRAW "R8":PSET (400,30):DRAW "R8":PSET (400,1):DRAW "R32"
+5460 REM  **  DIMENCIONADO  **
+5470 AA=B/2
+5480 IF O$="2" THEN AA=B
+5490 BB= (2*AA)+W
+5500 CC=(2*AA) + (2*J) +B
+5510 LOCATE 2,45:PRINT ;AA:LOCATE 6,45:PRINT ;W:LOCATE 10,45:PRINT ;AA:LOCATE 6,50:PRINT ;BB:LOCATE 12,10:PRINT ;AA:LOCATE 12,17:PRINT ;J:LOCATE 12,25:PRINT ;B:LOCATE 12,32:PRINT ;J:LOCATE 12,40:PRINT ;AA:LOCATE 14,25:PRINT ;CC
+5520 LOCATE 2,60:PRINT "Apilado : ";Z
+5540 FF= INT ((((BB*CC*Z)-(J*W*2*Z))*7.87)/1000000! + 1)
+5550 LOCATE 6,60:PRINT "Peso Fe : ";FF;" Kg"
+5560 LOCATE 2,25:PRINT "C"
+5570 LOCATE 6,10:PRINT "B"
+5580 LOCATE 6,25:PRINT "A"
+5590 LOCATE 6,40:PRINT "B"
+5600 LOCATE 10,15:PRINT "D"
+5610 LOCATE 10,35:PRINT "D"
+5650 LINE (191,30)-(289,30),1,,255
+5660 LINE (55,120)-(153,120),1,,255
+5670 LINE (327,120)-(395,120),1,,255
+5680 LINE (123,1)-(123,30),1,,255
+5690 LINE (327,1)-(327,30),1,,255
+5700 LINE (191,120)-(191,150),1,,255
+5710 LINE (259,120)-(259,150),1,,255
+5720 IF O$="2" THEN GOTO 5850
+5750 LOCATE 15,5:PRINT "A ) ";W+AA;" X ";B;" mm X ";Z;" mm de apilado"
+5760 LOCATE 17,5:PRINT "B ) ";W+AA;" X ";AA;" mm X ";2*Z;" mm de apilado"
+5770 LOCATE 19,5:PRINT "C ) ";B+(2*J);" X ";AA;" mm X ";Z;" mm de apilado"
+5780 LOCATE 21,5:PRINT "D ) ";AA+J;" X ";AA;" mm X ";2*Z" mm de apilado"
+5790 LOCATE 23,1:INPUT "Para imprimir precione Print Screen";JJJ$
+5800 SCREEN 0
+5810 RUN
+5850 LOCATE 15,5:PRINT "A ) ";W+AA;" X ";B;" mm X ";3*Z;" mm de apilado"
+5860 LOCATE 17,5:PRINT "C ) ";(2*J)+B;" X ";B;" mm X ";Z;" mm de apilado"
+5870 LOCATE 19,5:PRINT "D ) ";AA+J;" X ";AA;" mm X ";2*Z;" mm de apilado"
+5890 LOCATE 23,1:INPUT "Para imprimir precione Print Screen";JJJ$
+5895 LOCATE 15,60:PRINT "A = B"
+5900 SCREEN 0
+5910 RUN
+
