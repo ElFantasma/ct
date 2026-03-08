@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculo de Transformadores</title>
+<style>
+:root {
+  --primary: #1a5276;
+  --primary-light: #2980b9;
+  --primary-bg: #eaf2f8;
+  --card-bg: #ffffff;
+  --text: #2c3e50;
+  --text-light: #7f8c8d;
+  --border: #d5dbdb;
+  --success: #27ae60;
+  --warning: #f39c12;
+  --danger: #e74c3c;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --radius: 8px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--primary-bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 20px;
+}
+.container { max-width: 900px; margin: 0 auto; }
+h1 {
+  text-align: center;
+  color: var(--primary);
+  font-size: 1.8rem;
+  margin-bottom: 24px;
+  padding: 16px 0;
+  border-bottom: 3px solid var(--primary);
+}
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card h2 {
+  color: var(--primary);
+  font-size: 1.15rem;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-bg);
+}
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 180px;
+}
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+.form-group input[type="number"],
+.form-group input[type="text"],
+.form-group select {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(41,128,185,0.15);
+}
+.radio-group {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 6px 0;
+}
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: normal;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+.checkbox-group label {
+  font-weight: normal;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.hint {
+  font-size: 0.8rem;
+  color: var(--primary-light);
+  margin-top: 2px;
+  font-style: italic;
+}
+.sec-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.sec-row .form-group { min-width: 120px; flex: 1; }
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+.btn-primary { background: var(--primary-light); color: white; }
+.btn-primary:hover { background: var(--primary); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #c0392b; }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #219a52; }
+.btn-outline {
+  background: transparent;
+  color: var(--primary-light);
+  border: 1px solid var(--primary-light);
+}
+.btn-outline:hover { background: var(--primary-bg); }
+.btn-big {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+.btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+#results { display: none; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+th, td {
+  padding: 8px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  background: var(--primary-bg);
+  color: var(--primary);
+  font-weight: 600;
+  text-align: right;
+}
+th:first-child, td:first-child { text-align: left; }
+.pct-bar {
+  display: inline-block;
+  height: 18px;
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.pct-green { background: var(--success); }
+.pct-yellow { background: var(--warning); }
+.pct-red { background: var(--danger); }
+.strip-drawing {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+.strip-dims {
+  margin-top: 12px;
+}
+.strip-dims p {
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+.materials-table td, .materials-table th {
+  text-align: left;
+}
+.materials-table td:last-child, .materials-table th:last-child {
+  text-align: right;
+}
+.tooltip-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: white;
+  font-size: 11px;
+  text-align: center;
+  line-height: 16px;
+  cursor: help;
+  margin-left: 4px;
+  position: relative;
+}
+.tooltip-icon:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 10;
+  font-weight: normal;
+  font-style: normal;
+}
+@media (max-width: 600px) {
+  body { padding: 10px; }
+  .form-group { min-width: 100%; }
+  .sec-row .form-group { min-width: 80px; }
+  h1 { font-size: 1.4rem; }
+}
+@media print {
+  body { background: white; padding: 0; }
+  .card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+  .no-print { display: none !important; }
+  #results { display: block !important; }
+  h1 { border-bottom-color: #333; color: #333; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Calculo de Transformadores</h1>
+
+<!-- DATOS GENERALES -->
+<div class="card no-print">
+  <h2>Datos Generales</h2>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Tipo</label>
+      <div class="radio-group">
+        <label><input type="radio" name="tipo" value="T" checked> Transformador</label>
+        <label><input type="radio" name="tipo" value="A"> Autotransformador</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Fase</label>
+      <div class="radio-group">
+        <label><input type="radio" name="fase" value="1" checked> Monofasico</label>
+        <label><input type="radio" name="fase" value="2"> Trifasico</label>
+      </div>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Potencia Total (W)</label>
+      <input type="number" id="potencia" min="1" step="any" placeholder="ej: 500">
+    </div>
+    <div class="form-group">
+      <label>Tension Primario (V) <span class="tooltip-icon" data-tip="Para doble primario ingrese 110+110 o 110:110">?</span></label>
+      <input type="text" id="vprimario" placeholder="ej: 220 o 110+110">
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <div class="checkbox-group">
+        <input type="checkbox" id="pantalla">
+        <label for="pantalla">Pantalla Electroestatica</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <div id="seccionIdealHint" class="hint"></div>
+    </div>
+  </div>
+  <div style="margin-top:12px">
+    <label style="font-size:0.85rem;font-weight:600;color:var(--text-light);">Secundarios</label>
+    <div id="secundarios"></div>
+    <button type="button" class="btn btn-outline btn-sm" onclick="addSecundario()" style="margin-top:8px;">+ Agregar secundario</button>
+  </div>
+</div>
+
+<!-- NUCLEO Y CONSTRUCCION -->
+<div class="card no-print">
+  <h2>Nucleo y Construccion</h2>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Tipo de Construccion</label>
+      <div class="radio-group">
+        <label><input type="radio" name="construccion" value="C" checked onchange="toggleConstruccion()"> Carrete</label>
+        <label><input type="radio" name="construccion" value="T" onchange="toggleConstruccion()"> Tiras</label>
+      </div>
+    </div>
+  </div>
+
+  <div id="carrete-fields">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Laminacion</label>
+        <select id="laminacion"></select>
+      </div>
+      <div class="form-group">
+        <label>Apilado (mm)</label>
+        <input type="number" id="apilado" min="1" step="any">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Seccion de Calculo (cm<sup>2</sup>) <span class="tooltip-icon" data-tip="Seccion efectiva del nucleo magnetico">?</span></label>
+        <input type="number" id="seccion" min="0.1" step="any">
+      </div>
+      <div class="form-group">
+        <div class="checkbox-group" style="margin-top:20px;">
+          <input type="checkbox" id="csc">
+          <label for="csc">Capa Sobre Capa (CSC) <span class="tooltip-icon" data-tip="El primario se bobina capa sobre capa, agrega 0.1mm de aislacion extra">?</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tiras-fields" style="display:none;">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Ancho de Seccion B (mm)</label>
+        <input type="number" id="bstrip" min="1" step="any">
+      </div>
+      <div class="form-group">
+        <label>Apilado Z (mm)</label>
+        <input type="number" id="zstrip" min="1" step="any">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <div id="seccionCalcHint" class="hint"></div>
+      </div>
+      <div class="form-group">
+        <label>Capas en Secundario 1 <span class="tooltip-icon" data-tip="Numero de capas del primer secundario; determina el ancho de la ventana W">?</span></label>
+        <input type="number" id="capasK" min="1" step="1" value="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input type="checkbox" id="cscTiras">
+          <label for="cscTiras">Capa Sobre Capa (CSC)</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Gauss (miles) <span class="tooltip-icon" data-tip="Induccion magnetica. Tipico: 10 para chapa comun, 12-14 para grano orientado">?</span></label>
+      <input type="number" id="gauss" min="1" step="any" value="10">
+    </div>
+  </div>
+</div>
+
+<!-- CONDUCTORES -->
+<div class="card no-print">
+  <h2>Conductores</h2>
+  <div id="idealHints" class="hint" style="margin-bottom:12px;"></div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Diametro Primario (mm)</label>
+      <input type="number" id="diam_pri" min="0.01" step="0.01">
+    </div>
+  </div>
+  <div id="diam_secs"></div>
+</div>
+
+<!-- BOTONES -->
+<div class="btn-row no-print" style="margin-bottom:20px;">
+  <button type="button" class="btn btn-primary btn-big" onclick="calcular()" style="flex:3;">CALCULAR</button>
+  <button type="button" class="btn btn-outline btn-big" onclick="limpiar()" style="flex:1;">Limpiar</button>
+</div>
+
+<!-- RESULTADOS -->
+<div id="results">
+  <div class="card">
+    <h2>Resultados</h2>
+    <div id="resHeader"></div>
+    <table id="resTable">
+      <thead>
+        <tr>
+          <th>Bobinado</th>
+          <th>Volt</th>
+          <th>Amp</th>
+          <th>A/mm<sup>2</sup></th>
+          <th>&Oslash; Cu (mm)</th>
+          <th>Espiras</th>
+          <th>Capas</th>
+        </tr>
+      </thead>
+      <tbody id="resBody"></tbody>
+    </table>
+    <div id="windowPct"></div>
+  </div>
+
+  <div class="card">
+    <h2>Espiras Ajustadas (compensadas por caida de tension)</h2>
+    <table id="adjTable">
+      <thead>
+        <tr>
+          <th>Bobinado</th>
+          <th>Espiras Originales</th>
+          <th>Caida (espiras)</th>
+          <th>Espiras Ajustadas</th>
+        </tr>
+      </thead>
+      <tbody id="adjBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Detalles de Construccion</h2>
+    <div id="constDetails"></div>
+    <table id="constTable">
+      <thead>
+        <tr>
+          <th>Bobinado</th>
+          <th>Capas</th>
+          <th>Esp/Capa</th>
+          <th>Vuelta Media (mm)</th>
+          <th>Long. Total (m)</th>
+        </tr>
+      </thead>
+      <tbody id="constBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card" id="stripDrawingCard" style="display:none;">
+    <h2>Configuracion del Nucleo (Tiras)</h2>
+    <div class="strip-drawing" id="stripSvg"></div>
+    <div class="strip-dims" id="stripDims"></div>
+  </div>
+
+  <div class="card">
+    <h2>Materiales</h2>
+    <table class="materials-table" id="matTable">
+      <thead>
+        <tr><th>Material</th><th>Cantidad</th></tr>
+      </thead>
+      <tbody id="matBody"></tbody>
+    </table>
+  </div>
+
+  <div class="btn-row no-print">
+    <button type="button" class="btn btn-success" onclick="window.print()">Imprimir</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const LAM_DATA = [
+  { num: 63,  tongue: 6.4,  windowW: 6.3,  d4: 12.8,  d5: 25.4,  windowH: 10,    weightF: 0.0021875 },
+  { num: 37,  tongue: 9.2,  windowW: 8,    d4: 19.2,  d5: 35,    windowH: 16.2,  weightF: 0.0054347 },
+  { num: 25,  tongue: 12.5, windowW: 8,    d4: 21,    d5: 41.5,  windowH: 17,    weightF: 0.0090096 },
+  { num: 62,  tongue: 16,   windowW: 8,    d4: 24,    d5: 48,    windowH: 20,    weightF: 0.01125 },
+  { num: 75,  tongue: 19,   windowW: 9.5,  d4: 28.5,  d5: 57,    windowH: 24.5,  weightF: 0.0163157 },
+  { num: 77,  tongue: 22,   windowW: 12,   d4: 34,    d5: 68,    windowH: 30,    weightF: 0.0227272 },
+  { num: 111, tongue: 26,   windowW: 12.7, d4: 38,    d5: 76,    windowH: 34,    weightF: 0.0273076 },
+  { num: 112, tongue: 29,   windowW: 14.3, d4: 43,    d5: 86,    windowH: 39,    weightF: 0.036 },
+  { num: 125, tongue: 33,   windowW: 16,   d4: 48,    d5: 96,    windowH: 44,    weightF: 0.045 },
+  { num: 155, tongue: 38,   windowW: 19,   d4: 57,    d5: 114,   windowH: 53,    weightF: 0.063 },
+  { num: 60,  tongue: 40,   windowW: 20,   d4: 60,    d5: 120,   windowH: 56,    weightF: 0.0686 },
+  { num: 156, tongue: 42,   windowW: 21,   d4: 63,    d5: 126,   windowH: 59,    weightF: 0.078 },
+  { num: 600, tongue: 50,   windowW: 25,   d4: 75,    d5: 150,   windowH: 71,    weightF: 0.103 },
+  { num: 500, tongue: 64,   windowW: 32,   d4: 96,    d5: 192,   windowH: 92,    weightF: 0.17 },
+];
+
+// Populate lamination dropdown
+const lamSel = document.getElementById('laminacion');
+LAM_DATA.forEach((l, i) => {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = `${l.num} - Lengua ${l.tongue}mm, Ventana ${l.windowW}x${l.windowH}mm`;
+  lamSel.appendChild(opt);
+});
+
+// Secundarios management
+let secCount = 0;
+function addSecundario() {
+  secCount++;
+  const div = document.createElement('div');
+  div.className = 'sec-row';
+  div.id = 'sec_' + secCount;
+  div.innerHTML = `
+    <div class="form-group">
+      <label>Sec. ${secCount} - Tension (V)</label>
+      <input type="text" class="sec-volt">
+    </div>
+    <div class="form-group">
+      <label>Corriente (A)</label>
+      <input type="number" class="sec-amp" min="0" step="any">
+    </div>
+    <div class="form-group" style="flex:0;align-self:flex-end;">
+      <button type="button" class="btn btn-danger btn-sm" onclick="removeSecundario(${secCount})">X</button>
+    </div>`;
+  document.getElementById('secundarios').appendChild(div);
+  updateDiamFields();
+}
+function removeSecundario(id) {
+  const el = document.getElementById('sec_' + id);
+  if (el) el.remove();
+  renumberSecundarios();
+  updateDiamFields();
+}
+function renumberSecundarios() {
+  const rows = document.getElementById('secundarios').querySelectorAll('.sec-row');
+  secCount = rows.length;
+  rows.forEach((row, i) => {
+    const n = i + 1;
+    row.id = 'sec_' + n;
+    row.querySelector('label').textContent = `Sec. ${n} - Tension (V)`;
+    row.querySelector('button').setAttribute('onclick', `removeSecundario(${n})`);
+  });
+}
+function updateDiamFields() {
+  const container = document.getElementById('diam_secs');
+  const secRows = document.getElementById('secundarios').querySelectorAll('.sec-row');
+  const existing = container.querySelectorAll('.form-group');
+  // preserve values
+  const vals = {};
+  existing.forEach(fg => {
+    const inp = fg.querySelector('input');
+    if (inp && inp.value) vals[fg.dataset.idx] = inp.value;
+  });
+  container.innerHTML = '';
+  secRows.forEach((row, i) => {
+    const n = i + 1;
+    const fg = document.createElement('div');
+    fg.className = 'form-group';
+    fg.dataset.idx = n;
+    fg.style.marginBottom = '8px';
+    fg.innerHTML = `<label>Diametro Secundario ${n} (mm)</label><input type="number" class="diam-sec" min="0.01" step="0.01" value="${vals[n]||''}">`;
+    container.appendChild(fg);
+  });
+}
+
+addSecundario(); // start with one
+
+function getInsulationOverhead(d) {
+  let o = 0;
+  if (d >= 0.05) o = 0.01;
+  if (d >= 0.14) o = 0.02;
+  if (d >= 0.25) o = 0.03;
+  if (d >= 0.35) o = 0.05;
+  if (d >= 1.05) o = 0.10;
+  if (d >= 2.05) o = 0.30;
+  return o;
+}
+
+function toggleConstruccion() {
+  const isCarrete = document.querySelector('input[name="construccion"]:checked').value === 'C';
+  document.getElementById('carrete-fields').style.display = isCarrete ? '' : 'none';
+  document.getElementById('tiras-fields').style.display = isCarrete ? 'none' : '';
+}
+
+// Update ideal section hint when power changes
+document.getElementById('potencia').addEventListener('input', function() {
+  const P = parseFloat(this.value);
+  const isTri = document.querySelector('input[name="fase"]:checked').value === '2';
+  if (P > 0) {
+    const Pc = isTri ? P / 3 : P;
+    const SC = 1.1 * Math.sqrt(Pc);
+    document.getElementById('seccionIdealHint').textContent = `Seccion ideal del nucleo: ${SC.toFixed(2)} cm2`;
+  }
+});
+document.querySelectorAll('input[name="fase"]').forEach(r => r.addEventListener('change', () => {
+  document.getElementById('potencia').dispatchEvent(new Event('input'));
+  // Trifasico forces Tiras
+  if (r.value === '2' && r.checked) {
+    document.querySelector('input[name="construccion"][value="T"]').checked = true;
+    toggleConstruccion();
+  }
+}));
+
+// Update strip section hint
+['bstrip','zstrip'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', updateStripSection);
+});
+function updateStripSection() {
+  const B = parseFloat(document.getElementById('bstrip').value) || 0;
+  const Z = parseFloat(document.getElementById('zstrip').value) || 0;
+  if (B > 0 && Z > 0) {
+    const S = Math.floor(B * Z / 100);
+    document.getElementById('seccionCalcHint').textContent = `Seccion de calculo: ${S} cm2`;
+  }
+}
+
+function parsePrimaryVoltage(str) {
+  str = str.trim();
+  let GG = 0;
+  if (str.includes('+') || str.includes(':')) {
+    const parts = str.split(/[+:]/);
+    if (parts.length === 2) {
+      const a = parseFloat(parts[0]);
+      const b = parseFloat(parts[1]);
+      if (a === b && a > 0) {
+        GG = 1;
+        return { voltage: a + b, GG: 1, display: `${a}+${b}` };
+      }
+    }
+  }
+  const v = parseFloat(str);
+  return { voltage: v, GG: 0, display: str };
+}
+
+function calcular() {
+  try {
+    doCalc();
+  } catch(e) {
+    alert('Error en el calculo: ' + e.message);
+    console.error(e);
+  }
+}
+
+function doCalc() {
+  // Read inputs
+  const tipoB = document.querySelector('input[name="tipo"]:checked').value;
+  const faseO = document.querySelector('input[name="fase"]:checked').value;
+  const Ptotal = parseFloat(document.getElementById('potencia').value);
+  const shield = document.getElementById('pantalla').checked;
+  const priParsed = parsePrimaryVoltage(document.getElementById('vprimario').value);
+  const Vpri = priParsed.voltage;
+  const GG = priParsed.GG;
+  const construccion = document.querySelector('input[name="construccion"]:checked').value;
+
+  if (!Ptotal || Ptotal <= 0) { alert('Ingrese la potencia.'); return; }
+  if (!Vpri || Vpri <= 0) { alert('Ingrese la tension del primario.'); return; }
+
+  // Read secondaries
+  const secRows = document.getElementById('secundarios').querySelectorAll('.sec-row');
+  if (secRows.length === 0) { alert('Agregue al menos un secundario.'); return; }
+  const secondaries = [];
+  for (const row of secRows) {
+    const vStr = row.querySelector('.sec-volt').value.trim();
+    const v = parseFloat(vStr);
+    const a = parseFloat(row.querySelector('.sec-amp').value);
+    if (!v || v <= 0 || !a || a <= 0) { alert('Complete todos los datos de secundarios.'); return; }
+    secondaries.push({ voltage: v, current: a, voltStr: vStr });
+  }
+
+  // CS = total windings count (1-indexed: 1=primary, 2..CS=secondaries)
+  const CS = secondaries.length + 1;
+
+  // P for calculation
+  let P = Ptotal;
+  if (faseO === '2') P = P / 3;
+
+  const SC = 1.1 * Math.sqrt(P);
+
+  // Construction params
+  let H = construccion; // C or T
+  // Trifasico forces strips
+  if (faseO === '2') H = 'T';
+
+  let lamIdx, apilado, S, CSC;
+  let Bstrip, Zstrip, K;
+
+  if (H === 'C') {
+    lamIdx = parseInt(document.getElementById('laminacion').value);
+    apilado = parseFloat(document.getElementById('apilado').value);
+    S = parseFloat(document.getElementById('seccion').value);
+    CSC = document.getElementById('csc').checked;
+    if (!apilado || !S) { alert('Complete los datos del carrete.'); return; }
+  } else {
+    Bstrip = parseFloat(document.getElementById('bstrip').value);
+    Zstrip = parseFloat(document.getElementById('zstrip').value);
+    K = parseInt(document.getElementById('capasK').value);
+    CSC = document.getElementById('cscTiras').checked;
+    if (!Bstrip || !Zstrip || !K) { alert('Complete los datos de tiras.'); return; }
+    S = Math.floor(Bstrip * Zstrip / 100);
+    if (S <= 0) { alert('La seccion calculada es 0. Aumente las dimensiones.'); return; }
+  }
+
+  const G = parseFloat(document.getElementById('gauss').value);
+  if (!G || G <= 0) { alert('Ingrese el valor de Gauss.'); return; }
+
+  // Read wire diameters
+  const diamPri = parseFloat(document.getElementById('diam_pri').value);
+  if (!diamPri || diamPri <= 0) { alert('Ingrese el diametro del primario.'); return; }
+  const diamSecs = [];
+  const diamInputs = document.querySelectorAll('.diam-sec');
+  for (let i = 0; i < diamInputs.length; i++) {
+    const d = parseFloat(diamInputs[i].value);
+    if (!d || d <= 0) { alert(`Ingrese el diametro del secundario ${i+1}.`); return; }
+    diamSecs.push(d);
+  }
+
+  // B array: index 0=unused, 1=primary, 2..CS=secondaries
+  // Fields: [1]=voltage, [2]=current, [3]=turns, [4]=ideal_section, [5]=diameter,
+  //         [6]=num_layers, [7]=wire_area, [8]=A/mm2, [9]=turns_per_layer,
+  //         [10]=build, [11]=mean_turn, [12]=weight_per_m, [13]=resistance_per_m,
+  //         [14]=copper_weight, [15]=total_length, [16]=voltage_drop_turns,
+  //         [17]=adjusted_turns, [18]=wire_with_insulation
+  const B = [];
+  for (let i = 0; i <= CS; i++) B[i] = new Array(19).fill(0);
+
+  // Populate voltages and currents
+  B[1][1] = Vpri;
+  for (let f = 0; f < secondaries.length; f++) {
+    B[f+2][1] = secondaries[f].voltage;
+    B[f+2][2] = secondaries[f].current;
+  }
+
+  // === TURNS CALCULATION (line 800) ===
+  const N = 100000 / (S * G);
+  const EXV = N / 220;
+  B[1][3] = EXV * B[1][1];
+  for (let f = 2; f <= CS; f++) B[f][3] = EXV * B[f][1];
+
+  // === WIRE SECTIONS (line 900) ===
+  const PP = P * 1.05;
+  B[1][2] = PP / B[1][1]; // primary current
+  B[1][4] = (PP / B[1][1]) / 2.5; // ideal section primary
+  for (let f = 2; f <= CS; f++) B[f][4] = B[f][2] / 2.5;
+
+  // Wire properties
+  B[1][5] = diamPri;
+  for (let f = 2; f <= CS; f++) B[f][5] = diamSecs[f-2];
+
+  for (let f = 1; f <= CS; f++) {
+    B[f][7] = Math.PI * (B[f][5]/2) * (B[f][5]/2); // wire area
+    B[f][12] = B[f][7] * 9; // weight per meter
+    B[f][13] = (1.75 / B[f][7]) / 100; // resistance per meter
+  }
+
+  // === TURNS PER LAYER ===
+  let R, RV, J_pct;
+  let W; // window width for strips
+
+  if (H === 'C') {
+    // BOBBIN (line 1500)
+    const lam = LAM_DATA[lamIdx];
+    R = 1.1;
+    if (shield) R += 0.5;
+
+    for (let f = 1; f <= CS; f++) {
+      const o = getInsulationOverhead(B[f][5]);
+      B[f][18] = B[f][5] + o;
+      B[f][9] = Math.floor(lam.windowH / B[f][18]);
+
+      let CACA;
+      if (f === 1) {
+        CACA = Math.floor(B[f][3]);
+        if (GG === 1) CACA = CACA / 2;
+      } else {
+        CACA = Math.floor(B[f][3] + 0.5);
+      }
+
+      B[f][6] = Math.floor(CACA / B[f][9] + 0.9);
+
+      if (GG === 1 && f === 1) B[1][6] = B[1][6] * 2;
+      if (f === 1 && CSC) B[1][18] = B[1][18] + 0.1;
+
+      R = R + (B[f][6] * B[f][18] + 0.2);
+      if (GG === 1 && f === 1) R = R + 0.2;
+    }
+
+    RV = Math.floor((R / lam.windowW) * 100 + 1);
+    J_pct = RV;
+
+  } else {
+    // STRIPS (line 4200+)
+    // First compute insulation for all windings
+    for (let f = 1; f <= CS; f++) {
+      const o = getInsulationOverhead(B[f][5]);
+      B[f][18] = B[f][5] + o;
+    }
+
+    // Secondary 1 turns per layer
+    B[2][9] = B[2][3] / K;
+    B[2][6] = K;
+
+    // W calculation
+    W = B[2][9] * B[2][18] + 40;
+    W = Math.floor(W + 1);
+
+    R = 1.5;
+    if (shield) R += 0.5;
+
+    for (let f = 1; f <= CS; f++) {
+      let CACA;
+      if (f !== 2) {
+        B[f][9] = (W - 40) / B[f][18];
+        // B(F,0) = INT(B(F,9)) in BASIC - not used further
+      }
+      if (f === 1) {
+        CACA = Math.floor(B[f][3]);
+      } else {
+        CACA = Math.floor(B[f][3] + 0.5);
+      }
+      if (f !== 2) {
+        B[f][6] = Math.floor(CACA / B[f][9] + 0.9);
+      }
+
+      if (CSC) B[f][18] = B[f][18] + 0.1;
+
+      R = R + (B[f][6] * B[f][18] + 0.3);
+    }
+
+    J_pct = Math.floor((R / 74) * 100 + 1);
+    if (faseO === '2') J_pct = Math.floor((R * 2 / 74) * 100 + 1);
+    RV = J_pct;
+  }
+
+  // === MEAN TURN AND WEIGHT (line 2000) ===
+  let A2, D2, AISL, L_mt, Q_mt;
+
+  if (H === 'T') {
+    A2 = Bstrip;
+    D2 = Zstrip + 10;
+  } else {
+    D2 = apilado;
+    A2 = LAM_DATA[lamIdx].tongue;
+  }
+  AISL = 1;
+
+  for (let f = 1; f <= CS; f++) {
+    if (f !== 1) {
+      D2 = Q_mt;
+      A2 = L_mt;
+      AISL = 0.2;
+      if (shield && f === 2) AISL = 0.7;
+    }
+
+    B[f][10] = B[f][6] * B[f][18]; // build
+    if (GG === 1 && f === 1) B[1][10] = B[1][10] + 0.2;
+
+    L_mt = B[f][10] * 2 + (A2 + AISL);
+    Q_mt = B[f][10] * 2 + (D2 + AISL);
+    B[f][11] = L_mt + Q_mt + A2 + AISL + (D2 + AISL); // mean turn perimeter
+
+    B[f][15] = (B[f][11] * B[f][3]) / 1000; // total length in meters
+
+    // Copper weight (fixed bug from CTT.BAS line 2095)
+    if (B[f][5] > 2) {
+      B[f][14] = (B[f][15] * B[f][12]) * 1.1;
+    } else {
+      B[f][14] = (B[f][15] * B[f][12]) * 1.05;
+    }
+
+    // Voltage drop in turns
+    B[f][16] = B[f][15] * B[f][13] * B[f][2] * EXV;
+
+    if (f === 1) {
+      B[f][17] = B[f][3] - B[f][16]; // primary: subtract
+    } else {
+      B[f][17] = B[f][3] + B[f][16]; // secondary: add
+    }
+  }
+
+  // Current density
+  for (let f = 1; f <= CS; f++) {
+    B[f][8] = B[f][2] / B[f][7];
+  }
+
+  // === STRIP CORE DIMENSIONS ===
+  let AA, BB_dim, CC, FF_iron;
+  if (H === 'T') {
+    AA = Bstrip / 2;
+    if (faseO === '2') AA = Bstrip;
+    BB_dim = 2 * AA + W;
+    CC = 2 * AA + 2 * J_pct + Bstrip;
+    FF_iron = Math.floor(((BB_dim * CC * Zstrip) - (J_pct * W * 2 * Zstrip)) * 7.87 / 1000000 + 1);
+  }
+
+  // === MATERIALS ===
+  let lamWeight;
+  if (H === 'C') {
+    lamWeight = apilado * LAM_DATA[lamIdx].weightF;
+  }
+
+  // For trifasico or strips at print: copper * 3
+  // Line 3205: if O$="2" then B(F,14)=B(F,14)*3
+  // Line 3785: if H$="T" then B(F,14)=B(F,14)*3
+  // Both the screen display (3200) and print (3780) multiply.
+  // For strips: the screen display goes through 5200 -> 3200 (already multiplied if trifasico)
+  // Then print at 3780 multiplies again for strips.
+  // Looking more carefully: screen path for strips is 5200->3200 which does *3 if trifasico.
+  // Print path 3780 does *3 if H$="T". These are cumulative in the BASIC since B(F,14) is modified in place.
+  // But that's the BASIC bug of in-place modification when both screen and print run.
+  // For our web app we just show the final values once, so:
+  // - If trifasico: copper * 3
+  // - If strips (monofasico): copper * 3 (per line 3785)
+  // Wait, let me re-read. Line 3785 only runs in the print section. Line 3205 runs in the screen section.
+  // The screen section for strips goes: 5200 -> 3200. Line 3205 multiplies by 3 if trifasico.
+  // For monofasico strips, 3205 does NOT multiply. Then 3785 (print) multiplies by 3 for ALL strips.
+  // So for monofasico strips: screen shows 1x, print shows 3x. That seems like the BASIC multiplied
+  // copper by 3 for strips because 3 coils are needed (2 windows + spare?).
+  // Actually looking again at line 3785: it's inside the print loop at 3780, and it says
+  // IF H$="T" THEN B(F,14)=B(F,14)*3. This multiplies copper weight by 3 for strips in print.
+  // But the screen at 5200->3200 also runs for strips, and 3205 only multiplies if trifasico.
+  // So for monofasico strips: screen = 1x copper, print = 3x copper.
+  // For trifasico strips: screen = 3x copper (from 3205), print = 9x copper (3x again from 3785).
+  // That 9x seems like a bug. Let's follow CTT.BAS more carefully...
+  // In CTT.BAS: 3005 IF H$="T" THEN GOTO 5200. 5200 shows costs, then GOTO 3200.
+  // 3200 loop: 3205 IF O$="2" THEN B(F,14)=B(F,14)*3. So trifasico multiplies here.
+  // Then 3310 asks to print. 3780 loop: 3785 IF H$="T" THEN B(F,14)=B(F,14)*3.
+  // So for trifasico strips: first *3 at 3205, then *3 again at 3785 = *9. Clearly a bug.
+  // For monofasico strips: only *3 at 3785 in print.
+  // The intent seems to be: strips need *3 for copper (one set of coils per column or something).
+  // Let's just apply *3 once for strips, and separately *3 for trifasico.
+
+  const copperWeights = [];
+  for (let f = 1; f <= CS; f++) {
+    let cw = B[f][14];
+    if (faseO === '2') cw *= 3;
+    else if (H === 'T') cw *= 3;
+    copperWeights.push(cw);
+  }
+
+  // ===== RENDER RESULTS =====
+  document.getElementById('results').style.display = '';
+
+  // Header
+  const tipoStr = tipoB === 'T' ? 'Transformador' : 'Autotransformador';
+  const faseStr = faseO === '1' ? 'Monofasico' : 'Trifasico';
+  const potDisplay = faseO === '2' ? Math.round(P * 3 + 0.5) : Ptotal;
+  let headerHTML = `<p><strong>${tipoStr} ${faseStr}</strong> &mdash; ${potDisplay} W`;
+  headerHTML += ` &mdash; Pantalla: ${shield ? 'Si' : 'No'}`;
+  if (H === 'C') {
+    headerHTML += ` &mdash; Carrete: ${LAM_DATA[lamIdx].num} x ${apilado}mm`;
+  } else {
+    headerHTML += ` &mdash; Nucleo: ${Bstrip} x ${Zstrip}mm`;
+  }
+  headerHTML += ` &mdash; ${G}000 Gauss &mdash; Seccion: ${S} cm<sup>2</sup>`;
+  headerHTML += ` &mdash; Esp/Volt: ${EXV.toFixed(4)}`;
+  if (CSC) headerHTML += ' &mdash; CSC: Si';
+  headerHTML += `</p>`;
+  document.getElementById('resHeader').innerHTML = headerHTML;
+
+  // Main table
+  let tbody = '';
+  for (let f = 1; f <= CS; f++) {
+    const name = f === 1
+      ? (GG === 1 ? 'Primario (110+110)' : 'Primario')
+      : `Secundario ${f-1}`;
+    const volt = f === 1 && GG === 1
+      ? `${B[f][1]/2}+${B[f][1]/2}`
+      : B[f][1];
+    tbody += `<tr>
+      <td>${name}</td>
+      <td>${volt}</td>
+      <td>${B[f][2].toFixed(3)}</td>
+      <td>${B[f][8].toFixed(2)}</td>
+      <td>${B[f][5]}</td>
+      <td>${f===1 ? Math.floor(B[f][3]) : Math.floor(B[f][3]+0.5)}</td>
+      <td>${B[f][6]}</td>
+    </tr>`;
+  }
+  document.getElementById('resBody').innerHTML = tbody;
+
+  // Window percentage
+  let pctClass, pctLabel;
+  if (RV < 80) { pctClass = 'pct-green'; pctLabel = 'OK'; }
+  else if (RV <= 95) { pctClass = 'pct-yellow'; pctLabel = 'Ajustado'; }
+  else { pctClass = 'pct-red'; pctLabel = 'Excedido'; }
+  document.getElementById('windowPct').innerHTML = `
+    <p style="margin-top:8px;">
+      <strong>Porcentaje de Ventana:</strong>
+      <span class="pct-bar ${pctClass}" style="width:${Math.min(RV,100)*1.5}px;"></span>
+      <strong>${RV}%</strong> (${pctLabel})
+    </p>`;
+
+  // Adjusted turns table
+  let adjBody = '';
+  for (let f = 1; f <= CS; f++) {
+    const name = f === 1 ? 'Primario' : `Secundario ${f-1}`;
+    const origTurns = f === 1 ? Math.floor(B[f][3]) : Math.floor(B[f][3] + 0.5);
+    let adjTurns;
+    if (f === 1 && GG === 1) {
+      adjTurns = `${Math.floor(B[f][17]/2)} + ${Math.floor(B[f][17]/2)}`;
+    } else if (f === 1) {
+      adjTurns = Math.floor(B[f][17]);
+    } else {
+      adjTurns = Math.floor(B[f][17] + 0.5);
+    }
+    adjBody += `<tr>
+      <td>${name}</td>
+      <td>${origTurns}</td>
+      <td>${B[f][16].toFixed(2)}</td>
+      <td>${adjTurns}</td>
+    </tr>`;
+  }
+  document.getElementById('adjBody').innerHTML = adjBody;
+
+  // Construction details
+  let constInfo = '';
+  if (H === 'C') {
+    constInfo = `<p>Carrete: ${LAM_DATA[lamIdx].num} x ${apilado}mm &mdash; Gauss: ${G}000 &mdash; CSC: ${CSC?'Si':'No'}</p>`;
+  } else {
+    constInfo = `<p>Nucleo: ${Bstrip} x ${Zstrip}mm &mdash; Gauss: ${G}000 &mdash; W (ancho bobina): ${W}mm &mdash; CSC: ${CSC?'Si':'No'}</p>`;
+  }
+  document.getElementById('constDetails').innerHTML = constInfo;
+
+  let constBody = '';
+  for (let f = 1; f <= CS; f++) {
+    const name = f === 1 ? 'Primario' : `Secundario ${f-1}`;
+    const tpl = f === 1 ? Math.floor(B[f][3]) / B[f][6] : B[f][9];
+    constBody += `<tr>
+      <td>${name}</td>
+      <td>${B[f][6]}</td>
+      <td>${typeof B[f][9] === 'number' ? Math.floor(B[f][9]) : '-'}</td>
+      <td>${B[f][11].toFixed(1)}</td>
+      <td>${B[f][15].toFixed(2)}</td>
+    </tr>`;
+  }
+  document.getElementById('constBody').innerHTML = constBody;
+
+  // Strip drawing
+  if (H === 'T') {
+    document.getElementById('stripDrawingCard').style.display = '';
+    renderStripSVG(AA, BB_dim, CC, W, J_pct, Bstrip, Zstrip, faseO);
+
+    let dimsHTML = '';
+    if (faseO === '1') {
+      dimsHTML += `<p><strong>A)</strong> ${W+AA} x ${Bstrip} mm x ${Zstrip} mm de apilado</p>`;
+      dimsHTML += `<p><strong>B)</strong> ${W+AA} x ${AA} mm x ${2*Zstrip} mm de apilado</p>`;
+      dimsHTML += `<p><strong>C)</strong> ${Bstrip+2*J_pct} x ${AA} mm x ${Zstrip} mm de apilado</p>`;
+      dimsHTML += `<p><strong>D)</strong> ${AA+J_pct} x ${AA} mm x ${2*Zstrip} mm de apilado</p>`;
+    } else {
+      dimsHTML += `<p><strong>A)</strong> ${W+AA} x ${Bstrip} mm x ${3*Zstrip} mm de apilado (A = B)</p>`;
+      dimsHTML += `<p><strong>C)</strong> ${2*J_pct+Bstrip} x ${Bstrip} mm x ${Zstrip} mm de apilado</p>`;
+      dimsHTML += `<p><strong>D)</strong> ${AA+J_pct} x ${AA} mm x ${2*Zstrip} mm de apilado</p>`;
+    }
+    dimsHTML += `<p style="margin-top:8px;"><strong>Peso Hierro:</strong> ${FF_iron} Kg &mdash; <strong>Apilado:</strong> ${Zstrip} mm</p>`;
+    document.getElementById('stripDims').innerHTML = dimsHTML;
+  } else {
+    document.getElementById('stripDrawingCard').style.display = 'none';
+  }
+
+  // Materials
+  let matBody = '';
+  if (H === 'C') {
+    matBody += `<tr><td>Carrete ${LAM_DATA[lamIdx].num} x ${apilado}</td><td>1 unidad</td></tr>`;
+    matBody += `<tr><td>Laminacion ${LAM_DATA[lamIdx].num}</td><td>${lamWeight.toFixed(0)} gramos</td></tr>`;
+  } else {
+    matBody += `<tr><td>Laminacion (Tiras)</td><td>${FF_iron} Kg</td></tr>`;
+  }
+  for (let f = 1; f <= CS; f++) {
+    const name = f === 1 ? 'Primario' : `Secundario ${f-1}`;
+    matBody += `<tr><td>Cobre ${name} (diam. ${B[f][5]}mm)</td><td>${Math.floor(copperWeights[f-1] + 0.5)} gramos</td></tr>`;
+  }
+  document.getElementById('matBody').innerHTML = matBody;
+
+  // Update ideal hints
+  let idealHTML = `Secciones ideales: Primario ${B[1][4].toFixed(3)} mm2 (diam. ~${(Math.sqrt(B[1][4]/Math.PI)*2).toFixed(2)}mm)`;
+  for (let f = 2; f <= CS; f++) {
+    idealHTML += ` | Sec.${f-1}: ${B[f][4].toFixed(3)} mm2 (~${(Math.sqrt(B[f][4]/Math.PI)*2).toFixed(2)}mm)`;
+  }
+  document.getElementById('idealHints').textContent = idealHTML;
+
+  // Scroll to results
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderStripSVG(AA, BB, CC, W, J, Bstrip, Z, faseO) {
+  // Scale to fit ~500px wide
+  const maxDim = Math.max(BB, CC);
+  const scale = Math.min(400 / maxDim, 3);
+  const sw = Math.round(BB * scale);
+  const sh = Math.round(CC * scale);
+  const margin = 80;
+
+  const svgW = sw + margin * 2;
+  const svgH = sh + margin * 2 + 30;
+  const ox = margin;
+  const oy = margin;
+
+  // Compute sub-dimensions in scaled pixels
+  const aaS = AA * scale;
+  const wS = W * scale;
+  const jS = J * scale;
+  const bS = Bstrip * scale;
+
+  let svg = `<svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg" style="font-family:sans-serif;font-size:11px;">`;
+
+  // Outer rectangle
+  svg += `<rect x="${ox}" y="${oy}" width="${sw}" height="${sh}" fill="none" stroke="#1a5276" stroke-width="2"/>`;
+
+  // Two windows
+  const winX1 = ox + aaS;
+  const winY = oy + jS;
+  const winW = wS;
+  const winH = bS * scale / (BB * scale) * sh; // recalc properly
+
+  // Actually let me compute from the structure:
+  // Top yoke = AA, bottom yoke = AA, window height = J (each side... no)
+  // CC = 2*AA + 2*J + Bstrip  => the vertical structure is: AA (top yoke), J (window top), Bstrip (center leg??)
+  // Wait, looking at BASIC: CC = 2*AA + 2*J + B (where B=Bstrip, J=window percentage used as dimension)
+  // BB = 2*AA + W
+  // The structure from the BASIC drawing: outer rect, two inner windows
+  // Windows start at y=30 (from top), height=90 (out of 150 total)
+  // Windows at x=123 and x=259, width=68
+  // Dimension ticks show: top=AA, middle=W, bottom=AA (horizontal)
+  // Vertical: AA, J, B, J, AA
+  // So: top yoke height = AA (well, as labeled)
+  // Actually the labels show: row at bottom: AA, J, B, J, AA (horizontal widths)
+  // Right side labels: top=AA, middle=W, bottom=AA (heights)
+  // So horizontal: AA | J | B | J | AA = CC
+  // Vertical: AA | W | AA = BB
+  // That means: the drawing is rotated or I'm reading labels wrong.
+  // Let me re-read: LOCATE 12,10:PRINT AA (leftmost), 12,17:PRINT J, 12,25:PRINT B, 12,32:PRINT J, 12,40:PRINT AA
+  // These are at row 12, spread horizontally => they label the horizontal bottom dimension
+  // LOCATE 2,45:PRINT AA (top right), 6,45:PRINT W (middle right), 10,45:PRINT AA (bottom right)
+  // These label vertical dimension on the right side
+  // So: Horizontal = AA + J + B + J + AA = CC (total width)
+  //     Vertical = AA + W + AA = BB (total height)
+  // The windows are where J x W rectangles are (two of them)
+
+  // Redraw properly:
+  // Total width = CC, Total height = BB
+  // Two windows: each is J wide x W tall
+  // Window 1: at x=AA, y=AA
+  // Window 2: at x=AA+J+B, y=AA
+
+  const totalW_px = CC * scale;
+  const totalH_px = BB * scale;
+  const svgW2 = totalW_px + margin * 2;
+  const svgH2 = totalH_px + margin * 2 + 30;
+
+  const aa_px = AA * scale;
+  const j_px = J * scale;
+  const b_px = Bstrip * scale;
+  const w_px = W * scale;
+
+  svg = `<svg width="${svgW2}" height="${svgH2}" xmlns="http://www.w3.org/2000/svg" style="font-family:sans-serif;font-size:11px;">`;
+
+  // Outer
+  svg += `<rect x="${ox}" y="${oy}" width="${totalW_px}" height="${totalH_px}" fill="#eaf2f8" stroke="#1a5276" stroke-width="2"/>`;
+
+  // Window 1
+  const w1x = ox + aa_px;
+  const w1y = oy + aa_px;
+  svg += `<rect x="${w1x}" y="${w1y}" width="${j_px}" height="${w_px}" fill="white" stroke="#1a5276" stroke-width="1.5"/>`;
+
+  // Window 2
+  const w2x = ox + aa_px + j_px + b_px;
+  svg += `<rect x="${w2x}" y="${w1y}" width="${j_px}" height="${w_px}" fill="white" stroke="#1a5276" stroke-width="1.5"/>`;
+
+  // Section labels inside
+  if (faseO === '1') {
+    // A = center, B = sides, C = top, D = corners
+    svg += label(ox + aa_px + j_px + b_px/2, oy + aa_px + w_px/2, 'A');
+    svg += label(ox + aa_px/2, oy + aa_px + w_px/2, 'B');
+    svg += label(ox + aa_px + j_px + b_px + j_px + aa_px/2, oy + aa_px + w_px/2, 'B');
+    svg += label(ox + totalW_px/2, oy + aa_px/2, 'C');
+    svg += label(ox + aa_px/2, oy + aa_px + w_px + aa_px/2, 'D');
+    svg += label(ox + aa_px + j_px + b_px + j_px + aa_px/2, oy + aa_px + w_px + aa_px/2, 'D');
+  } else {
+    svg += label(ox + aa_px + j_px + b_px/2, oy + aa_px + w_px/2, 'A');
+    svg += label(ox + aa_px/2, oy + aa_px + w_px/2, 'A');
+    svg += label(ox + aa_px + j_px + b_px + j_px + aa_px/2, oy + aa_px + w_px/2, 'A');
+    svg += label(ox + totalW_px/2, oy + aa_px/2, 'C');
+    svg += label(ox + aa_px/2, oy + aa_px + w_px + aa_px/2, 'D');
+    svg += label(ox + aa_px + j_px + b_px + j_px + aa_px/2, oy + aa_px + w_px + aa_px/2, 'D');
+  }
+
+  // Dimension lines - bottom
+  const dimY = oy + totalH_px + 20;
+  svg += dimLine(ox, dimY, ox + aa_px, dimY, AA);
+  svg += dimLine(ox + aa_px, dimY, ox + aa_px + j_px, dimY, J);
+  svg += dimLine(ox + aa_px + j_px, dimY, ox + aa_px + j_px + b_px, dimY, Bstrip);
+  svg += dimLine(ox + aa_px + j_px + b_px, dimY, ox + aa_px + j_px + b_px + j_px, dimY, J);
+  svg += dimLine(ox + aa_px + j_px + b_px + j_px, dimY, ox + totalW_px, dimY, AA);
+
+  // Total bottom
+  const dimY2 = dimY + 18;
+  svg += dimLine(ox, dimY2, ox + totalW_px, dimY2, CC);
+
+  // Dimension lines - right
+  const dimX = ox + totalW_px + 15;
+  svg += dimLineV(dimX, oy, dimX, oy + aa_px, AA);
+  svg += dimLineV(dimX, oy + aa_px, dimX, oy + aa_px + w_px, W);
+  svg += dimLineV(dimX, oy + aa_px + w_px, dimX, oy + totalH_px, AA);
+
+  // Total right
+  const dimX2 = dimX + 40;
+  svg += dimLineV(dimX2, oy, dimX2, oy + totalH_px, BB);
+
+  svg += '</svg>';
+  document.getElementById('stripSvg').innerHTML = svg;
+}
+
+function label(x, y, text) {
+  return `<text x="${x}" y="${y+4}" text-anchor="middle" font-weight="bold" fill="#1a5276" font-size="14">${text}</text>`;
+}
+
+function dimLine(x1, y, x2, y2, val) {
+  const mid = (x1 + x2) / 2;
+  return `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#666" stroke-width="1"/>
+    <line x1="${x1}" y1="${y-4}" x2="${x1}" y2="${y+4}" stroke="#666" stroke-width="1"/>
+    <line x1="${x2}" y1="${y-4}" x2="${x2}" y2="${y+4}" stroke="#666" stroke-width="1"/>
+    <text x="${mid}" y="${y-4}" text-anchor="middle" fill="#333" font-size="10">${val}</text>`;
+}
+
+function dimLineV(x, y1, x2, y2, val) {
+  const mid = (y1 + y2) / 2;
+  return `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#666" stroke-width="1"/>
+    <line x1="${x-4}" y1="${y1}" x2="${x+4}" y2="${y1}" stroke="#666" stroke-width="1"/>
+    <line x1="${x-4}" y1="${y2}" x2="${x+4}" y2="${y2}" stroke="#666" stroke-width="1"/>
+    <text x="${x+8}" y="${mid+4}" fill="#333" font-size="10">${val}</text>`;
+}
+
+function limpiar() {
+  document.getElementById('potencia').value = '';
+  document.getElementById('vprimario').value = '';
+  document.getElementById('pantalla').checked = false;
+  document.getElementById('gauss').value = '10';
+  document.getElementById('apilado').value = '';
+  document.getElementById('seccion').value = '';
+  document.getElementById('csc').checked = false;
+  document.getElementById('cscTiras').checked = false;
+  document.getElementById('bstrip').value = '';
+  document.getElementById('zstrip').value = '';
+  document.getElementById('capasK').value = '1';
+  document.getElementById('diam_pri').value = '';
+  document.getElementById('laminacion').selectedIndex = 0;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('seccionIdealHint').textContent = '';
+  document.getElementById('seccionCalcHint').textContent = '';
+  document.getElementById('idealHints').textContent = '';
+  document.querySelector('input[name="tipo"][value="T"]').checked = true;
+  document.querySelector('input[name="fase"][value="1"]').checked = true;
+  document.querySelector('input[name="construccion"][value="C"]').checked = true;
+  toggleConstruccion();
+  // Reset secondaries
+  document.getElementById('secundarios').innerHTML = '';
+  secCount = 0;
+  addSecundario();
+}
+</script>
+</body>
+</html>
